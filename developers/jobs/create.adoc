@@ -15,7 +15,7 @@ Then, open the file and place a PHP class within this file that matches the name
 
 namespace Application\Job;
 
-use Concrete\Job\Job as AbstractJob;
+use Concrete\Core\Job\Job as AbstractJob;
 
 class SummarizeStatistics extends AbstractJob
 {

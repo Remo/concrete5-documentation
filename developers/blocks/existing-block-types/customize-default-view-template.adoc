@@ -221,7 +221,7 @@ To use the Enterprise HTML:
                         <div class="animated_item text_1_2" data-animation-show="fadeInUp" data-animation-hide="fadeOutDown"><?php echo $row['title']; ?></div>
                         <?php if ($row['linkURL']) { ?>
                             <div class="animated_item text_1_3" data-animation-show="fadeInUp" data-animation-hide="fadeOutDown"><a href="<?php echo $row['linkURL']; ?>" class="general_button_type_1">Read More</a></div>
-                        <? } ?>
+                        <?php } ?>
                     </li>
                 <?php } ?>
             </ul>

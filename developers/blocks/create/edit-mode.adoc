@@ -20,9 +20,9 @@ if ($c->isEditMode()) { ?>
             <?php echo t('YouTube Video disabled in edit mode.'); ?>
         </div>
     </div>
-<? } else { ?>
+<?php } else { ?>
     <!-- YouTube contents here -->
-<? } ?>
+<?php } ?>
 ----
 
 This is pretty self-explanatory.

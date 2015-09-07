@@ -29,7 +29,7 @@ Make sure it has the proper namespace (NOT beginning with Application)
 
 [source,php]
 ----
-<?
+<?php
 
 namespace Concrete\Package\GameSystem\Controller\SinglePage\Dashboard\System;
 

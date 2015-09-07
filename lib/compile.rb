@@ -33,15 +33,16 @@ end
 $rootDir = File.expand_path(File.dirname(File.dirname(__FILE__)))
 
 def process(which)
-  print "Processing " + which + ":\n"
+  print "### BUILDING " + which + " ### \n"
 
-  print "  - PDF (this takes a while)... "
+  print "Generating PDF (this takes a while)... "
   File.delete("output/" + which + ".pdf") if File.exist?("output/" + which + ".pdf")
   Asciidoctor.convert_file(which + ".adoc", :to_file => "output/" + which + ".pdf", :header_footer => true, :safe => Asciidoctor::SafeMode::UNSAFE, :backend => "pdf", :attributes => {"numbered" => true})
   print "done.\n"
 
-  print "  - Optimizing PDF... "
+  print "Optimizing PDF... "
   File.delete("output/" + which + "-optimized.pdf") if File.exist?("output/" + which + "-optimized.pdf")
+  # Let's look for GhostScript
   gs = nil
   for checkGS in ['gs', 'gswin64c.exe', 'gswin32c.exe']
     begin
@@ -57,6 +58,7 @@ def process(which)
   if gs.nil?
     print "SKIPPED (GhostScript executable not found)\n"
   else
+    # GhostScript found: let's optimize the PDF
     sizeFrom = File.size("output/" + which + ".pdf")
     begin
       rc = `#{gs} -q -dNOPAUSE -dBATCH -dSAFER -dNOOUTERSAVE -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -dCannotEmbedFontPolicy=/Warning -dDownsampleColorImages=true -dColorImageResolution=300 -dDownsampleGrayImages=true -dGrayImageResolution=300 -dDownsampleMonoImages=true -dMonoImageResolution=300 -sOutputFile=output/#{which}-optimized.pdf output/#{which}.pdf output/#{which}.pdfmarks`
@@ -72,7 +74,7 @@ def process(which)
   end
   File.delete("output/" + which + ".pdfmarks") if File.exist?("output/" + which + ".pdfmarks")
 
-  print "  - EPUB... "
+  print "Generating EPUB... "
   stdOutString = StringIO.new
   stdOutOriginal = $stdout
   $stdout = stdOutString
@@ -83,7 +85,7 @@ def process(which)
   end
   print "done.\n"
 
-  print "  - Complete HTML... "
+  print "Generating single-page HTML... "
   adoc = Asciidoctor.convert_file(which + ".adoc", :to_file => false, :header_footer => true, :safe => Asciidoctor::SafeMode::UNSAFE, :attributes => {"numbered" => true})
   adoc.gsub!('src="//www.youtube.com/', 'src="https://www.youtube.com/')
   f = File.open("output/" + which + ".html", "wb")
@@ -91,11 +93,12 @@ def process(which)
   f.close
   print "done.\n"
 
-  print "  - Preparing files for DocBook... "
+  print "Preparing AsciiDoc files for DocBook... "
   Dir.mkdir("tmp/adoc") unless Dir.exists?("tmp/adoc")
   FileUtils.cp(which + ".adoc", "tmp/adoc/" + which + ".adoc")
   FileUtils.rm_rf("tmp/adoc/" + which)
   for step in 1..2
+    # In first step we create the directory tree, in second step we copy the files
     Dir.glob(which + "/**/*").each do |fromPath|
       toPath = fromPath.sub(which + "/", "tmp/adoc/" + which + "/")
       if File.directory?(fromPath)
@@ -105,6 +108,7 @@ def process(which)
       else
         if step == 2
           if /\.adoc$/ =~ toPath
+            # Let's hack the AsciiDoc file
             relPathAdoc = fromPath.sub(which + "/", "")
             relPathHtml = relPathAdoc.sub(/\.adoc$/, '.html')
             f = File.open(fromPath, "rb")
@@ -149,10 +153,12 @@ def process(which)
               replace << "++++\n"
               contents.gsub!(search, replace)
             end
+            # Write out the hacked AsciiDoc file
             f = File.open(toPath, "wb")
             f.write(contents)
             f.close
           else
+            # It's not a file that ends with .adoc: simply copy it
             FileUtils.cp(fromPath, toPath)
           end
         end
@@ -161,14 +167,14 @@ def process(which)
   end
   print "done.\n"
 
-  print "  - Generating DocBook... "
+  print "Generating DocBook file... "
   docbook = Asciidoctor.convert_file("tmp/adoc/" + which + ".adoc", :to_file => false, :header_footer => true, :safe => Asciidoctor::SafeMode::UNSAFE, :backend => "docbook", :attributes => {"numbered" => true})
   f = File.open("tmp/" + which + "-docbook.xml", "wb")
   f.write(docbook)
   f.close
   print "done.\n"
 
-  print "  - Generating dirty chunked html... "
+  print "Generating dirty multi-page HTML... "
   now = DateTime.now.strftime("%F %T %z")
   FileUtils.rm_rf("tmp/html/" + which)
   Dir.mkdir("tmp/html") unless Dir.exists?("tmp/html")
@@ -182,7 +188,7 @@ def process(which)
   end
   print "done.\n"
 
-  print "  - Generating wonderful chunked html... "
+  print "Generating final multi-page HTML... "
   templates = {}
   FileUtils.rm_rf("output/" + which)
   Dir.mkdir("output/" + which)
@@ -234,7 +240,7 @@ def process(which)
       end
       bodyHTML << node.to_html
     end
-    wonderfulHTML = templates[templateKey].gsub('[[TITLE]]', docTitle).gsub!('[[TOC]]', thisToc).gsub!('[[BODY]]', bodyHTML).gsub!('[[DATETIME]]', now)
+    wonderfulHTML = templates[templateKey].gsub('[[TITLE]]', docTitle).gsub('[[TOC]]', thisToc).gsub('[[DATETIME]]', now).gsub('[[BODY]]', bodyHTML)
     f = File.open("output/" + which + "/" + relName, "wb")
     f.write(wonderfulHTML)
     f.close

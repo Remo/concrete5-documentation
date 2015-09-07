@@ -5,7 +5,9 @@
   <!-- See http://docbook.sourceforge.net/release/xsl/1.78.1/doc/html/index.html -->
   <xsl:param name="chunker.output.encoding" select="'UTF-8'" />
   <xsl:param name="highlight.source" select="1" />
+  <xsl:param name="chunk.quietly" select="1" />
   <xsl:param name="chunk.tocs.and.lots" select="1" />
+  <xsl:param name="toc.list.type" select="'ul'" />
   <xsl:param name="generate.toc" select="'
 appendix          nop
 article           nop

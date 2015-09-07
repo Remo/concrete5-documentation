@@ -45,7 +45,7 @@ foreach($albums as $album) { ?>
     <li><a href="<?php echo URL::to('/media', 'view_album', $album->getAlbumID()); ?>">
         <?php echo $album->getAlbumName(); ?>
     </a></li>
-<? } ?>
+<?php } ?>
 </ul>
 ----
 
